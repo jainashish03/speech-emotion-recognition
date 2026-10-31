@@ -1,0 +1,7 @@
+Put your audio in this folder (or set AUDIO_ROOT in ../config.py to wherever it already is).
+
+IEMOCAP  (DATASET = "iemocap"): unzip the release so this folder contains
+         Session1, Session2, Session3, Session4, Session5
+         (an extra wrapper folder like IEMOCAP_full_release/ is fine, it is found automatically).
+CREMA-D  (DATASET = "cremad"):  copy/unzip the .wav files here (e.g. the AudioWAV folder).
+RAVDESS  (DATASET = "ravdess"): copy/unzip the Actor_01 ... Actor_24 folders here.

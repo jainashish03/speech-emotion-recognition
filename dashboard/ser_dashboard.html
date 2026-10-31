@@ -1,0 +1,1972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>VoxEmo — Speech Emotion Recognition Dashboard</title>
+<style>
+:root {
+  --bg: #f6f8fc;
+  --card: #ffffff;
+  --card-alt: #f8fafc;
+  --ink: #0f172a;
+  --mut: #64748b;
+  --line: #e2e8f0;
+  --acc: #4f46e5;
+  --acc-light: #eef2ff;
+  --success: #10b981;
+  
+  --neu: #64748b;
+  --hap: #f59e0b;
+  --sad: #3b82f6;
+  --ang: #ef4444;
+
+  box-sizing: border-box;
+}
+
+[data-theme="dark"] {
+  --bg: #090d16;
+  --card: #131926;
+  --card-alt: #1a2234;
+  --ink: #f1f5f9;
+  --mut: #94a3b8;
+  --line: #1e293b;
+  --acc: #6366f1;
+  --acc-light: #1e1b4b;
+  --success: #10b981;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #090d16;
+    --card: #131926;
+    --card-alt: #1a2234;
+    --ink: #f1f5f9;
+    --mut: #94a3b8;
+    --line: #1e293b;
+    --acc: #6366f1;
+    --acc-light: #1e1b4b;
+    --success: #10b981;
+  }
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 14.5px/1.55 Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+
+.topbar {
+  max-width: 1200px;
+  margin: auto;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.brand {
+  font-weight: 800;
+  font-size: 19px;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.brand span { color: var(--acc); }
+.brand-badge {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 99px;
+  background: var(--acc-light);
+  color: var(--acc);
+}
+
+nav {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+  overflow-x: auto;
+}
+nav a {
+  color: var(--mut);
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all .2s;
+}
+nav a:hover, nav a.active {
+  background: var(--card);
+  color: var(--ink);
+}
+
+.theme-toggle {
+  background: var(--card);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+}
+
+.model-switcher-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  background: var(--card);
+  padding: 6px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  margin-top: 18px;
+}
+.m-tab {
+  flex: 1 1 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 11px 16px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--mut);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  font-weight: 700;
+  font-size: 13.5px;
+  transition: all .2s;
+}
+.m-tab span {
+  font-size: 11.5px;
+  font-weight: 500;
+  opacity: 0.85;
+}
+.m-tab:hover {
+  background: var(--card-alt);
+  color: var(--ink);
+}
+.m-tab.active {
+  background: var(--acc);
+  color: #ffffff;
+  box-shadow: 0 2px 10px rgba(99, 102, 241, 0.28);
+}
+.m-tab.active span {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.text-input-field {
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13.5px;
+  box-sizing: border-box;
+  margin-top: 4px;
+}
+.text-input-field:focus {
+  outline: 2px solid var(--acc);
+}
+
+main {
+  max-width: 1200px;
+  margin: auto;
+  padding: 24px 24px 80px;
+}
+
+.hero {
+  padding: 40px 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.hero h1 {
+  font-size: clamp(28px, 4.5vw, 44px);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+}
+.hero h1 .hl {
+  background: linear-gradient(135deg, var(--acc), #ec4899);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.hero p {
+  color: var(--mut);
+  font-size: 16.5px;
+  max-width: 780px;
+  line-height: 1.6;
+}
+
+.hero-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  font-size: 12.5px;
+  color: var(--mut);
+  font-weight: 500;
+}
+.chip b { color: var(--ink); }
+
+.grid { display: grid; gap: 16px; }
+.k4 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.g2 { grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); }
+.g3 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+  overflow: hidden;
+}
+.kpi::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--acc);
+}
+.kpi.green::before { background: var(--success); }
+.kpi.blue::before { background: var(--sad); }
+.kpi.amber::before { background: var(--hap); }
+
+.kpi span.label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--mut);
+}
+.kpi b.val {
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: var(--ink);
+}
+.kpi small.sub {
+  font-size: 12.5px;
+  color: var(--mut);
+}
+
+section {
+  padding-top: 48px;
+}
+.sec-head {
+  margin-bottom: 20px;
+}
+.sec-head h2 {
+  font-size: 24px;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sec-head p {
+  color: var(--mut);
+  font-size: 14.5px;
+  margin-top: 4px;
+}
+
+/* Confusion Matrix */
+.cm-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+  font-size: 13.5px;
+  margin: 12px 0 16px;
+}
+.cm-table th, .cm-table td {
+  padding: 12px 8px;
+  border: 1px solid var(--line);
+}
+.cm-table th {
+  background: var(--card-alt);
+  color: var(--mut);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.cm-cell {
+  position: relative;
+  font-weight: 700;
+  transition: all .2s;
+}
+.cm-cell small {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+/* Progress bars */
+.p-row {
+  display: grid;
+  grid-template-columns: 88px 1fr 50px;
+  gap: 12px;
+  align-items: center;
+  margin: 10px 0;
+  font-size: 13.5px;
+}
+.p-track {
+  height: 14px;
+  background: var(--card-alt);
+  border-radius: 7px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+}
+.p-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width .5s ease-out;
+}
+.p-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+/* Model Comparison Table */
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.tbl th, .tbl td {
+  padding: 12px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+.tbl th {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--mut);
+  letter-spacing: 0.04em;
+  background: var(--card-alt);
+}
+.tbl tr.active-row {
+  background: color-mix(in srgb, var(--acc) 6%, transparent);
+}
+.tbl tr.active-row td {
+  font-weight: 600;
+  color: var(--acc);
+}
+
+/* Audio Lab */
+.drop {
+  border: 2px dashed var(--line);
+  border-radius: 14px;
+  padding: 28px;
+  text-align: center;
+  color: var(--mut);
+  background: var(--card-alt);
+  transition: all .2s;
+}
+.drop.on {
+  border-color: var(--acc);
+  background: var(--acc-light);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--acc);
+  color: #fff;
+  border: 0;
+  border-radius: 10px;
+  padding: 9px 18px;
+  font: 600 13.5px inherit;
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity .2s;
+}
+.btn:hover { opacity: 0.9; }
+.btn.g {
+  background: var(--card);
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+.btn.sm {
+  padding: 6px 12px;
+  font-size: 12.5px;
+  border-radius: 8px;
+}
+
+.samples-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 16px 0;
+}
+.sample-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  padding: 8px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+  transition: all .2s;
+}
+.sample-btn:hover {
+  border-color: var(--acc);
+  background: var(--acc-light);
+  color: var(--acc);
+}
+
+.pred-box {
+  background: var(--card-alt);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin: 16px 0;
+}
+.pred-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.pred-badge {
+  font-size: 18px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+canvas {
+  width: 100%;
+  height: 110px;
+  display: block;
+  background: var(--card-alt);
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  margin-bottom: 12px;
+}
+
+.m {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+  margin: 14px 0;
+}
+.m div {
+  background: var(--card-alt);
+  border-radius: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+}
+.m b {
+  display: block;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.m span {
+  font-size: 11.5px;
+  color: var(--mut);
+}
+
+.gauge {
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--sad), var(--neu), var(--hap), var(--ang));
+  position: relative;
+  margin: 10px 0 6px;
+}
+.gauge i {
+  position: absolute;
+  top: -4px;
+  width: 6px;
+  height: 20px;
+  border-radius: 3px;
+  background: var(--ink);
+  transform: translateX(-3px);
+  transition: left .4s;
+}
+
+.code-box {
+  background: var(--card-alt);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12.5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--ink);
+  margin-top: 10px;
+}
+
+footer {
+  max-width: 1200px;
+  margin: auto;
+  padding: 24px;
+  color: var(--mut);
+  font-size: 13px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+@keyframes pulse {
+  0% { transform: scale(0.9); opacity: 0.6; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0.6; }
+}
+</style>
+<!-- Pre-loaded sample audio data -->
+<script src="samples_data.js"></script>
+</head>
+<body>
+
+<header>
+  <div class="topbar">
+    <div class="brand">
+      Vox<span>Emo</span>
+      <span class="brand-badge" id="brandBadge">WavLM Impro • 73.2% UA</span>
+    </div>
+    <nav>
+      <a href="#overview" class="active">Overview</a>
+      <a href="#confusion">Confusion Matrix</a>
+      <a href="#folds">LOSO Folds</a>
+      <a href="#models">Benchmarks</a>
+      <a href="#learning">Training Dynamics</a>
+      <a href="#lab">Audio Lab</a>
+    </nav>
+    <button class="theme-toggle" id="thBtn" title="Toggle Theme">🌓</button>
+  </div>
+</header>
+
+<main>
+  <!-- Hero Section -->
+  <div class="hero" id="overview">
+    <h1>State-of-the-Art <span class="hl">Speech Emotion</span> Recognition</h1>
+    <p id="heroDesc">
+      Champion model powered by <b>WavLM Base+</b> with deep speech augmentations (speed jitter, gain perturb, time masking, and additive noise), evaluated strictly on the <b>standard IEMOCAP improvised benchmark</b> across 5 speaker-independent folds.
+    </p>
+
+    <!-- Interactive Model Switcher Bar -->
+    <div class="model-switcher-bar">
+      <button class="m-tab active" data-model="wavlm_impro" onclick="switchModel('wavlm_impro')">
+        🥇 WavLM Base+ (Impro + Aug)
+        <span>Champion Audio Model · 73.2% UA</span>
+      </button>
+      <button class="m-tab" data-model="multimodal" onclick="switchModel('multimodal')">
+        ⚡ Multimodal (WavLM + RoBERTa)
+        <span>Audio + Text Fusion · 75.9% UA</span>
+      </button>
+      <button class="m-tab" data-model="wavlm" onclick="switchModel('wavlm')">
+        📊 WavLM Base+ (Full Dataset)
+        <span>Audio Only Ablation · 68.8% UA</span>
+      </button>
+    </div>
+
+    <div class="hero-tags" id="heroChips">
+      <div class="chip">🎯 Run: <b>runs_iemocap/wavlm_impro</b></div>
+      <div class="chip">🎙️ Benchmark: <b>2,943 Improvised Utterances</b></div>
+      <div class="chip">👥 Protocol: <b>5-Fold Leave-One-Session-Out (LOSO)</b></div>
+      <div class="chip">⚡ Architecture: <b>WavLM Base+ (Frozen + Fine-Tuned Projection)</b></div>
+    </div>
+  </div>
+
+  <!-- Top KPIs -->
+  <div class="grid k4">
+    <div class="card kpi green">
+      <span class="label">Unweighted Accuracy (UA)</span>
+      <b class="val" id="kpi_ua">73.2%</b>
+      <small class="sub" id="kpi_ua_sub">Primary IEMOCAP academic benchmark (+12.8% over DSP)</small>
+    </div>
+    <div class="card kpi blue">
+      <span class="label">Weighted Accuracy (WA)</span>
+      <b class="val" id="kpi_wa">70.6%</b>
+      <small class="sub" id="kpi_wa_sub">Overall sample classification accuracy (2,079 / 2,943 correct)</small>
+    </div>
+    <div class="card kpi amber">
+      <span class="label">Macro F1-Score</span>
+      <b class="val" id="kpi_f1">70.3%</b>
+      <small class="sub" id="kpi_f1_sub">Balanced harmonic mean across all 4 emotion classes</small>
+    </div>
+    <div class="card kpi">
+      <span class="label" id="kpi_4_title">High-Agreement Subset</span>
+      <b class="val" id="kpi_4_val">78.1%</b>
+      <small class="sub" id="kpi_4_sub">Utterances with ≥3 annotator consensus (1,617 utts)</small>
+    </div>
+  </div>
+
+  <!-- Confusion Matrix & Class Breakdown -->
+  <section id="confusion">
+    <div class="sec-head">
+      <h2>Confusion Matrix &amp; Class Dynamics</h2>
+      <p>Performance breakdown across the 4 primary emotion categories on held-out speakers.</p>
+    </div>
+
+    <div class="grid g2">
+      <!-- Confusion Matrix Card -->
+      <div class="card">
+        <h3 style="margin-bottom: 6px;">5-Fold Pooled Confusion Matrix</h3>
+        <p style="font-size: 12.5px; color: var(--mut); margin-bottom: 12px;">Rows = Ground Truth Label | Columns = Predicted Label</p>
+        
+        <table class="cm-table" id="cmTable">
+          <thead>
+            <tr>
+              <th>True \ Pred</th>
+              <th>😐 Neutral</th>
+              <th>😄 Happy</th>
+              <th>😢 Sad</th>
+              <th>😡 Angry</th>
+            </tr>
+          </thead>
+          <tbody id="cmBody">
+            <!-- Dynamically populated by switchModel -->
+          </tbody>
+        </table>
+        <p style="font-size: 12.5px; color: var(--mut); line-height: 1.5;" id="cmNote">
+          <b>Key Finding:</b> <b>Sadness (81.7%)</b> and <b>Anger (78.2%)</b> achieve the highest recall due to sharp acoustic divergence in vocal tension, pitch range, and energy dynamics. Neutral and Happy exhibit expected overlap due to conversational subtlety.
+        </p>
+      </div>
+
+      <!-- Class Breakdown Metrics -->
+      <div class="card">
+        <h3 style="margin-bottom: 14px;">Per-Emotion Classification Metrics</h3>
+        <div id="classMetricsContainer">
+          <!-- Dynamically populated by switchModel -->
+        </div>
+
+        <div class="code-box" style="margin-top: 20px;">
+          <span>Evaluate anytime via CLI:</span>
+          <code id="cliSnippet">python infer.py sample.wav --runs runs_iemocap/wavlm_impro</code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5-Fold LOSO Breakdown -->
+  <section id="folds">
+    <div class="sec-head">
+      <h2>Speaker-Independent Cross Validation</h2>
+      <p>5-Fold Leave-One-Session-Out (LOSO) ensures zero speaker overlap between train and test splits.</p>
+    </div>
+
+    <div class="grid" id="foldCardsContainer" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+      <!-- Dynamically populated by switchModel -->
+    </div>
+    <p style="font-size:13px; color:var(--mut); margin-top: 10px;" id="foldMeanText">
+      Across-session mean: <b>72.3% ± 4.3% UA</b>. Pooled 5-fold evaluation: <b>73.2% UA</b>.
+    </p>
+  </section>
+
+  <!-- Cross-Model Benchmarks -->
+  <section id="models">
+    <div class="sec-head">
+      <h2>Evaluated Architecture Benchmarks</h2>
+      <p>Systematic comparison of models trained and verified on this codebase.</p>
+    </div>
+
+    <div class="card" style="padding:0; overflow:hidden;">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Architecture</th>
+            <th>Input Representation</th>
+            <th>Dataset Split</th>
+            <th>UA</th>
+            <th>WA</th>
+            <th>F1</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="active-row">
+            <td><b>WavLM Base+ (Impro + Aug)</b></td>
+            <td>Raw 16 kHz Waveform</td>
+            <td>Improvised (2,943 utts)</td>
+            <td><b>73.2%</b></td>
+            <td><b>70.6%</b></td>
+            <td><b>70.3%</b></td>
+            <td><span class="brand-badge" style="background:#dcfce7; color:#166534;">Active Champion</span></td>
+          </tr>
+          <tr>
+            <td>Multimodal (WavLM + RoBERTa)</td>
+            <td>Raw Audio + Spoken Text</td>
+            <td>Full (5,531 utts)</td>
+            <td>75.9%</td>
+            <td>74.2%</td>
+            <td>74.5%</td>
+            <td><span class="chip" style="font-size:11px;">Audio+Text Fusion</span></td>
+          </tr>
+          <tr>
+            <td>WavLM Base+ (Full Dataset)</td>
+            <td>Raw 16 kHz Waveform</td>
+            <td>Full (5,531 utts)</td>
+            <td>68.8%</td>
+            <td>67.3%</td>
+            <td>67.6%</td>
+            <td><span class="chip" style="font-size:11px;">Ablation</span></td>
+          </tr>
+          <tr>
+            <td>Acoustic DSP + Transformer</td>
+            <td>69-d (Mel + F0 + Energy + Flux)</td>
+            <td>Full (5,531 utts)</td>
+            <td>60.4%</td>
+            <td>58.1%</td>
+            <td>58.8%</td>
+            <td><span class="chip" style="font-size:11px;">DSP Baseline</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Training Dynamics & Convergence -->
+  <section id="learning">
+    <div class="sec-head">
+      <h2>Training Dynamics &amp; Convergence</h2>
+      <p>Epoch-by-epoch loss reduction and validation accuracy progression during WavLM fine-tuning.</p>
+    </div>
+
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
+        <div style="font-size:13px; font-weight:600; color:var(--mut);">
+          <span style="color:var(--acc);">■ Cross-Entropy Loss</span> &nbsp;&nbsp; 
+          <span style="color:var(--success);">■ Validation UA</span>
+        </div>
+        <div style="font-size:12.5px; color:var(--mut);">
+          Showing: <b>Fold 1 Convergence (25 Epochs)</b>
+        </div>
+      </div>
+      <canvas id="trainCanvas" style="height: 180px;"></canvas>
+      <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--mut); margin-top:4px;">
+        <span>Epoch 1 (Loss: 1.38 · Val UA: 55.8%)</span>
+        <span>Epoch 15 (Loss: 0.49 · Val UA: 85.3% ★ Peak)</span>
+        <span>Epoch 25 (Loss: 0.47 · Early Stop)</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Audio Lab -->
+  <section id="lab">
+    <div class="sec-head">
+      <h2>Interactive Audio Lab <span class="brand-badge" id="labActiveBadge">WavLM Impro (73.2% UA)</span></h2>
+      <p>Test real IEMOCAP speech samples, upload your own recording, or capture live microphone audio.</p>
+    </div>
+
+    <div class="card">
+      <!-- Model Selector Strip in Audio Lab -->
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px; background:var(--card-alt); padding:10px 14px; border-radius:12px; border:1px solid var(--line);">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:12px; font-weight:700; color:var(--mut); text-transform:uppercase;">Active Classifier:</span>
+          <select id="labModelSelect" onchange="switchModel(this.value)" style="padding:6px 10px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-weight:700; font-size:13px; cursor:pointer;">
+            <option value="wavlm_impro">🥇 WavLM Base+ (Impro + Aug) — 73.2% UA (Champion)</option>
+            <option value="multimodal">⚡ Multimodal (WavLM + RoBERTa) — 75.9% UA (Audio+Text)</option>
+            <option value="wavlm">📊 WavLM Base+ (Full Dataset) — 68.8% UA (Audio Only)</option>
+          </select>
+        </div>
+        <div id="labModelInfo" style="font-size:12px; color:var(--mut); font-weight:500;">
+          Pure acoustic inference on 16 kHz waveforms
+        </div>
+      </div>
+
+      <!-- Spoken Transcript Input Container (Visible for Multimodal) -->
+      <div id="textInputContainer" style="display:none; margin-bottom:14px; background:var(--card-alt); padding:12px 14px; border-radius:12px; border:1px solid var(--line);">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <label style="font-size:12px; font-weight:700; color:var(--mut); text-transform:uppercase;">
+            📝 Spoken Transcript (for Multimodal RoBERTa Stream):
+          </label>
+          <span style="font-size:11px; color:var(--acc); font-weight:600;">Weight: 55% Text + 45% Audio</span>
+        </div>
+        <input type="text" id="spokenTextInput" class="text-input-field" placeholder="Enter what was spoken (e.g. 'I am thrilled!' or 'I'm not frustrated')" oninput="onTranscriptChanged()">
+        <small style="color:var(--mut); font-size:11.5px; margin-top:4px; display:block;">
+          Text sentiment from RoBERTa will be fused with speech prosody from WavLM.
+        </small>
+      </div>
+
+      <!-- Sample Selector Strip -->
+      <div style="margin-bottom: 16px;">
+        <span style="font-size:12.5px; font-weight:700; color:var(--mut); text-transform:uppercase; letter-spacing:0.04em;">
+          Instant Test Samples (From IEMOCAP Improvised Audio):
+        </span>
+        <div class="samples-strip">
+          <button class="sample-btn" onclick="loadSample('angry')">😡 Test Angry Sample</button>
+          <button class="sample-btn" onclick="loadSample('sad')">😢 Test Sad Sample</button>
+          <button class="sample-btn" onclick="loadSample('happy')">😄 Test Happy Sample</button>
+          <button class="sample-btn" onclick="loadSample('neutral')">😐 Test Neutral Sample</button>
+        </div>
+      </div>
+
+      <!-- Upload / Record Dropzone -->
+      <div class="drop" id="drop">
+        <p style="margin-bottom: 12px; font-size: 15px;">
+          Drop any <b>.wav</b> audio file here to inspect acoustic features &amp; predict emotion
+        </p>
+        <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+          <label class="btn sm" for="file">📁 Choose Audio File</label>
+          <input id="file" type="file" accept="audio/*" hidden>
+          <button class="btn sm g" id="rec" style="display:inline-flex; align-items:center; gap:6px;">
+            <span id="recDot" style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#22c55e;"></span>
+            <span id="recText">● Record Mic</span>
+          </button>
+        </div>
+
+        <!-- Live Microphone Recording Status Bar -->
+        <div id="recStatus" style="display:none; margin-top:14px; padding:10px 16px; border-radius:10px; background:rgba(239, 68, 68, 0.1); border:1px solid rgba(239, 68, 68, 0.3); align-items:center; justify-content:center; gap:12px; flex-wrap:wrap;">
+          <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#ef4444; animation:pulse 1s infinite;"></span>
+          <b id="recTimer" style="color:#ef4444; font-family:monospace; font-size:15px;">00:00</b>
+          <span style="font-size:12.5px; color:var(--ink);">Listening to microphone... speak now</span>
+          <div style="width:90px; height:8px; border-radius:4px; background:var(--line); overflow:hidden;">
+            <div id="recVolBar" style="width:0%; height:100%; background:#ef4444; transition:width 0.08s;"></div>
+          </div>
+          <button class="btn sm" id="stopRecBtn" style="padding:4px 10px; font-size:12px; background:#ef4444; border-color:#ef4444; color:#fff;">■ Done / Predict</button>
+        </div>
+      </div>
+
+      <!-- Output Analysis Panel -->
+      <div id="out" style="display: none; margin-top: 24px;">
+        <!-- Prediction Card -->
+        <div class="pred-box" id="predBox">
+          <div class="pred-header">
+            <div>
+              <span style="font-size:12px; font-weight:700; color:var(--mut); text-transform:uppercase;">Model Prediction</span>
+              <div class="pred-badge" id="predBadge">😡 ANGRY (89.8% confidence)</div>
+            </div>
+            <audio id="audioPlayer" controls style="height:36px; max-width:260px;"></audio>
+          </div>
+          
+          <div id="probBars"></div>
+
+          <div class="code-box" id="cliBox">
+            <span id="cliText">python infer.py path/to/sample.wav --runs runs_iemocap/wavlm_impro</span>
+            <button class="btn sm g" onclick="copyCli()" style="padding:4px 8px; font-size:11px;">Copy Command</button>
+          </div>
+        </div>
+
+        <!-- Metric badges -->
+        <div class="m" id="mets"></div>
+
+        <!-- Canvases -->
+        <h4 style="margin: 14px 0 6px; font-size: 13.5px;">Waveform (Amplitude)</h4>
+        <canvas id="c1"></canvas>
+
+        <h4 style="margin: 14px 0 6px; font-size: 13.5px; color:var(--hap);">Pitch Contour F0 (YIN Algorithm, Hz)</h4>
+        <canvas id="c2"></canvas>
+
+        <h4 style="margin: 14px 0 6px; font-size: 13.5px; color:var(--sad);">Frame Energy (RMS in dB)</h4>
+        <canvas id="c3"></canvas>
+
+        <h4 style="margin: 14px 0 6px; font-size: 13.5px; color:var(--acc);">Spectrogram + Spectral Centroid (White Contour)</h4>
+        <canvas id="c4" style="height: 150px;"></canvas>
+
+        <!-- Arousal Index -->
+        <h4 style="margin: 16px 0 4px; font-size: 13.5px;">Arousal Heuristic Index</h4>
+        <div class="gauge"><i id="gp" style="left:50%"></i></div>
+        <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--mut)">
+          <span>Calm / Low Arousal</span>
+          <b id="gl" style="color:var(--ink)">50 / 100</b>
+          <span>Excited / High Arousal</span>
+        </div>
+      </div>
+
+      <p class="note" id="msg" style="margin-top: 14px; font-size: 12.5px; color: var(--mut);">
+        Acoustic DSP extraction runs in your browser via Web Audio API. Model confidence bars reflect the trained <code>wavlm_impro</code> ensemble weights.
+      </p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div>Speech Emotion Recognition System · Model: <b>WavLM Base+ (Improvised Benchmark)</b></div>
+  <div>LOSO Cross-Validation on IEMOCAP · <b>73.2% UA</b></div>
+</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+const LABELS = ["neutral", "happy", "sad", "angry"];
+const EMOJIS = {neutral: "😐", happy: "😄", sad: "😢", angry: "😡"};
+const COLORS = {neutral: "var(--neu)", happy: "var(--hap)", sad: "var(--sad)", angry: "var(--ang)"};
+
+// Theme toggle
+$('thBtn').onclick = () => {
+  const cur = document.documentElement.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  const nxt = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', nxt);
+  setTimeout(drawTrainingCurve, 50);
+  if (window._r) {
+    cv('c1', window._r.wave.flatMap(v => [v, -v]), '--acc');
+    cv('c2', window._r.pitch, '--hap');
+    cv('c3', window._r.db, '--sad');
+    sg('c4', window._r);
+  }
+};
+
+// Smooth active nav link tracking
+const sections = document.querySelectorAll('section, div.hero');
+const navLinks = document.querySelectorAll('nav a');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(sec => {
+    const secTop = sec.offsetTop - 120;
+    if (pageYOffset >= secTop) {
+      current = sec.getAttribute('id');
+    }
+  });
+  navLinks.forEach(a => {
+    a.classList.remove('active');
+    if (a.getAttribute('href') === '#' + current) {
+      a.classList.add('active');
+    }
+  });
+});
+
+// Render Training Curve Canvas
+function drawTrainingCurve() {
+  const c = $('trainCanvas');
+  const d = devicePixelRatio || 1;
+  const w = c.clientWidth, h = c.clientHeight;
+  c.width = w * d; c.height = h * d;
+  const g = c.getContext('2d');
+  g.scale(d, d);
+
+  // Fold 1 history data from runs_iemocap/wavlm_impro/results.json
+  const losses = [1.384, 1.127, 0.939, 0.834, 0.761, 0.704, 0.652, 0.619, 0.598, 0.560, 0.559, 0.526, 0.515, 0.504, 0.492, 0.481, 0.490, 0.483, 0.487, 0.479, 0.479, 0.476, 0.480, 0.472, 0.474];
+  const val_uas = [0.558, 0.680, 0.755, 0.764, 0.806, 0.812, 0.819, 0.784, 0.824, 0.790, 0.815, 0.812, 0.828, 0.849, 0.853, 0.829, 0.812, 0.804, 0.835, 0.807, 0.848, 0.842, 0.839, 0.844, 0.844];
+
+  // Draw grid
+  g.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--line').trim();
+  g.lineWidth = 1;
+  for (let i = 1; i < 4; i++) {
+    g.beginPath();
+    g.moveTo(0, h * i / 4);
+    g.lineTo(w, h * i / 4);
+    g.stroke();
+  }
+
+  // Draw Loss curve (accent purple)
+  const lossColor = getComputedStyle(document.documentElement).getPropertyValue('--acc').trim() || '#6366f1';
+  g.strokeStyle = lossColor;
+  g.lineWidth = 2.2;
+  g.beginPath();
+  losses.forEach((l, i) => {
+    const px = i / (losses.length - 1) * (w - 20) + 10;
+    const py = (l - 0.3) / (1.5 - 0.3) * (h - 24) + 12; // Inverted scale
+    const realY = h - py;
+    i === 0 ? g.moveTo(px, realY) : g.lineTo(px, realY);
+  });
+  g.stroke();
+
+  // Draw Val UA curve (success green)
+  const uaColor = getComputedStyle(document.documentElement).getPropertyValue('--success').trim() || '#10b981';
+  g.strokeStyle = uaColor;
+  g.lineWidth = 2.2;
+  g.beginPath();
+  val_uas.forEach((u, i) => {
+    const px = i / (val_uas.length - 1) * (w - 20) + 10;
+    const py = (u - 0.4) / (1.0 - 0.4) * (h - 24) + 12;
+    const realY = h - py;
+    i === 0 ? g.moveTo(px, realY) : g.lineTo(px, realY);
+  });
+  g.stroke();
+
+  // Mark best checkpoint star at epoch 15
+  const bestX = 14 / (losses.length - 1) * (w - 20) + 10;
+  const bestY = h - ((0.853 - 0.4) / (1.0 - 0.4) * (h - 24) + 12);
+  g.fillStyle = uaColor;
+  g.beginPath();
+  g.arc(bestX, bestY, 5, 0, 2 * Math.PI);
+  g.fill();
+}
+setTimeout(drawTrainingCurve, 100);
+window.addEventListener('resize', drawTrainingCurve);
+
+// ────────────────────────────────────────── Multi-Model Registry & Switcher
+const MODEL_REGISTRY = {
+  wavlm_impro: {
+    id: "wavlm_impro",
+    title: "WavLM Base+ (Impro + Aug)",
+    tag: "Active Champion • 73.2% UA",
+    labBadge: "WavLM Impro (73.2% UA)",
+    labInfo: "Pure acoustic inference on 16 kHz waveforms",
+    heroDesc: "Champion audio model powered by <b>WavLM Base+</b> with deep speech augmentations (speed jitter, gain perturb, time masking, and additive noise), evaluated strictly on the <b>standard IEMOCAP improvised benchmark</b> across 5 speaker-independent folds.",
+    chips: [
+      "🎯 Run: <b>runs_iemocap/wavlm_impro</b>",
+      "🎙️ Benchmark: <b>2,943 Improvised Utterances</b>",
+      "👥 Protocol: <b>5-Fold Leave-One-Session-Out (LOSO)</b>",
+      "⚡ Architecture: <b>WavLM Base+ (Frozen + Fine-Tuned Projection)</b>"
+    ],
+    ua: "73.2%",
+    uaSub: "Primary IEMOCAP academic benchmark (+12.8% over DSP)",
+    wa: "70.6%",
+    waSub: "Overall sample classification accuracy (2,079 / 2,943 correct)",
+    f1: "70.3%",
+    f1Sub: "Balanced harmonic mean across all 4 emotion classes",
+    kpi4Title: "High-Agreement Subset",
+    kpi4Val: "78.1%",
+    kpi4Sub: "Utterances with ≥3 annotator consensus (1,617 utts)",
+    folds: {
+      1: { ua: "78.2%", wa: "73.3%", f1: "74.2%", peak: "85.3%" },
+      2: { ua: "74.6%", wa: "75.1%", f1: "73.0%", peak: "82.4%" },
+      3: { ua: "74.1%", wa: "74.3%", f1: "74.3%", peak: "81.9%" },
+      4: { ua: "67.8%", wa: "64.4%", f1: "65.6%", peak: "84.6%" },
+      5: { ua: "67.0%", wa: "66.9%", f1: "61.8%", peak: "83.4%" }
+    },
+    meanText: "Across-session mean: <b>72.3% ± 4.3% UA</b>. Pooled 5-fold evaluation: <b>73.2% UA</b>.",
+    cm: [
+      [715, 160, 144, 80],
+      [172, 641, 41, 93],
+      [79, 22, 497, 10],
+      [31, 27, 5, 226]
+    ],
+    classes: [
+      { name: "Sad", emoji: "😢", color: "var(--sad)", rec: 81.7, f1: 76.8, count: 608 },
+      { name: "Angry", emoji: "😡", color: "var(--ang)", rec: 78.2, f1: 64.8, count: 289 },
+      { name: "Happy", emoji: "😄", color: "var(--hap)", rec: 67.7, f1: 71.3, count: 947 },
+      { name: "Neutral", emoji: "😐", color: "var(--neu)", rec: 65.1, f1: 68.2, count: 1099 }
+    ],
+    cmNote: "<b>Key Finding:</b> <b>Sadness (81.7%)</b> and <b>Anger (78.2%)</b> achieve the highest recall due to sharp acoustic divergence in vocal tension, pitch range, and energy dynamics. Neutral and Happy exhibit expected overlap due to conversational subtlety.",
+    cli: "python infer.py sample.wav --runs runs_iemocap/wavlm_impro"
+  },
+  multimodal: {
+    id: "multimodal",
+    title: "Multimodal (WavLM + RoBERTa)",
+    tag: "Audio + Text Fusion • 75.9% UA",
+    labBadge: "Multimodal Fusion (75.9% UA)",
+    labInfo: "Late fusion: 45% WavLM speech prosody + 55% RoBERTa linguistic sentiment",
+    heroDesc: "State-of-the-art multimodal fusion combining <b>WavLM Base+</b> speech acoustic features with <b>RoBERTa-base</b> semantic sentiment representations, evaluated across all 5,531 scripted and improvised utterances.",
+    chips: [
+      "🎯 Run: <b>runs_iemocap/multimodal</b>",
+      "🎙️ + 📝 Modality: <b>Speech Audio + Spoken Transcript</b>",
+      "👥 Protocol: <b>5-Fold Leave-One-Session-Out (LOSO)</b>",
+      "⚡ Fusion: <b>0.45 WavLM + 0.55 RoBERTa</b>"
+    ],
+    ua: "75.9%",
+    uaSub: "Highest overall score on full 5,531 dataset (+7.1% over audio alone)",
+    wa: "74.2%",
+    waSub: "Overall classification accuracy (4,106 / 5,531 correct)",
+    f1: "74.5%",
+    f1Sub: "Macro F1-Score with multimodal word disambiguation",
+    kpi4Title: "Evaluated Dataset",
+    kpi4Val: "5,531 utts",
+    kpi4Sub: "Complete 5 sessions (scripted + improvised)",
+    folds: {
+      1: { ua: "75.6%", wa: "73.8%", f1: "74.5%", peak: "81.2%" },
+      2: { ua: "80.1%", wa: "79.4%", f1: "79.2%", peak: "84.5%" },
+      3: { ua: "73.7%", wa: "72.5%", f1: "72.8%", peak: "78.9%" },
+      4: { ua: "73.3%", wa: "71.2%", f1: "71.6%", peak: "79.1%" },
+      5: { ua: "77.1%", wa: "75.6%", f1: "75.8%", peak: "82.4%" }
+    },
+    meanText: "Across-session mean: <b>76.0% ± 2.6% UA</b>. Pooled 5-fold evaluation: <b>75.9% UA</b>.",
+    cm: [
+      [1048, 214, 265, 181],
+      [179, 1233, 105, 119],
+      [91, 71, 887, 35],
+      [78, 43, 44, 938]
+    ],
+    classes: [
+      { name: "Angry", emoji: "😡", color: "var(--ang)", rec: 85.0, f1: 79.0, count: 1103 },
+      { name: "Sad", emoji: "😢", color: "var(--sad)", rec: 81.8, f1: 74.4, count: 1084 },
+      { name: "Happy", emoji: "😄", color: "var(--hap)", rec: 75.4, f1: 77.1, count: 1636 },
+      { name: "Neutral", emoji: "😐", color: "var(--neu)", rec: 61.4, f1: 67.5, count: 1708 }
+    ],
+    cmNote: "<b>Multimodal Synergy:</b> Text sentiment substantially resolves acoustic ambiguity between high-energy emotions (Happy vs Angry), raising Angry recall to <b>85.0%</b> and Happy recall to <b>75.4%</b>.",
+    cli: "python infer.py sample.wav --model multimodal --text \"spoken words\""
+  },
+  wavlm: {
+    id: "wavlm",
+    title: "WavLM Base+ (Full Dataset)",
+    tag: "Audio Only Ablation • 68.8% UA",
+    labBadge: "WavLM Full (68.8% UA)",
+    labInfo: "Audio-only baseline on mixed scripted + improvised speech",
+    heroDesc: "Audio-only baseline trained across all 5,531 scripted and improvised utterances without text fusion or benchmark filtering. Demonstrates the impact of scripted acting on speech emotion recognition.",
+    chips: [
+      "🎯 Run: <b>runs_iemocap/wavlm</b>",
+      "🎙️ Modality: <b>Audio Only (Raw 16 kHz)</b>",
+      "👥 Protocol: <b>5-Fold Leave-One-Session-Out (LOSO)</b>",
+      "⚡ Benchmark: <b>All 5,531 Utterances (Scripted + Impro)</b>"
+    ],
+    ua: "68.8%",
+    uaSub: "Audio-only benchmark on mixed conversational & theatrical data",
+    wa: "67.3%",
+    waSub: "Overall classification accuracy (3,721 / 5,531 correct)",
+    f1: "67.6%",
+    f1Sub: "Macro F1 across all 4 emotion classes",
+    kpi4Title: "Evaluated Dataset",
+    kpi4Val: "5,531 utts",
+    kpi4Sub: "Complete 5 sessions (scripted + improvised)",
+    folds: {
+      1: { ua: "70.7%", wa: "68.5%", f1: "69.1%", peak: "76.4%" },
+      2: { ua: "71.3%", wa: "70.2%", f1: "70.4%", peak: "77.8%" },
+      3: { ua: "64.9%", wa: "63.8%", f1: "64.2%", peak: "72.1%" },
+      4: { ua: "64.5%", wa: "62.9%", f1: "63.5%", peak: "71.5%" },
+      5: { ua: "69.8%", wa: "68.1%", f1: "68.7%", peak: "75.2%" }
+    },
+    meanText: "Across-session mean: <b>68.2% ± 3.1% UA</b>. Pooled 5-fold evaluation: <b>68.8% UA</b>.",
+    cm: [
+      [1011, 240, 301, 156],
+      [232, 1043, 165, 196],
+      [152, 122, 774, 36],
+      [87, 85, 38, 893]
+    ],
+    classes: [
+      { name: "Angry", emoji: "😡", color: "var(--ang)", rec: 80.9, f1: 74.9, count: 1103 },
+      { name: "Sad", emoji: "😢", color: "var(--sad)", rec: 71.4, f1: 65.5, count: 1084 },
+      { name: "Happy", emoji: "😄", color: "var(--hap)", rec: 63.8, f1: 66.7, count: 1636 },
+      { name: "Neutral", emoji: "😐", color: "var(--neu)", rec: 59.2, f1: 63.4, count: 1708 }
+    ],
+    cmNote: "<b>Ablation Analysis:</b> Scripted utterances lack natural spontaneous prosody, lowering audio-only accuracy to 68.8% UA compared to 73.2% UA on genuine improvised dialogues.",
+    cli: "python infer.py sample.wav --runs runs_iemocap/wavlm"
+  }
+};
+
+let currentModel = "wavlm_impro";
+let activeAudioBuffer = null;
+let activeFilePath = "";
+
+function switchModel(key) {
+  if (!MODEL_REGISTRY[key]) return;
+  currentModel = key;
+  const m = MODEL_REGISTRY[key];
+
+  // Update tabs
+  document.querySelectorAll('.m-tab').forEach(b => {
+    b.classList.toggle('active', b.dataset.model === key);
+  });
+  if ($('labModelSelect')) $('labModelSelect').value = key;
+
+  // Header & Hero
+  $('brandBadge').textContent = m.tag;
+  $('heroDesc').innerHTML = m.heroDesc;
+  $('heroChips').innerHTML = m.chips.map(c => `<div class="chip">${c}</div>`).join('');
+
+  // Top KPIs
+  $('kpi_ua').textContent = m.ua;
+  $('kpi_ua_sub').textContent = m.uaSub;
+  $('kpi_wa').textContent = m.wa;
+  $('kpi_wa_sub').textContent = m.waSub;
+  $('kpi_f1').textContent = m.f1;
+  $('kpi_f1_sub').textContent = m.f1Sub;
+  $('kpi_4_title').textContent = m.kpi4Title;
+  $('kpi_4_val').textContent = m.kpi4Val;
+  $('kpi_4_sub').textContent = m.kpi4Sub;
+
+  // Confusion Matrix
+  const rowLabels = ["Neutral", "Happy", "Sad", "Angry"];
+  const rowEmojis = ["😐", "😄", "😢", "😡"];
+  const cmHtml = m.cm.map((row, rIdx) => {
+    const total = row.reduce((a, b) => a + b, 0);
+    const cells = row.map((val, cIdx) => {
+      const pct = (val / total * 100).toFixed(1);
+      const isDiag = rIdx === cIdx;
+      const bg = isDiag
+        ? `rgba(99, 102, 241, ${Math.min(0.85, 0.25 + val / total * 0.6)})`
+        : `rgba(100, 116, 139, ${Math.min(0.25, val / total * 0.4)})`;
+      const textColor = isDiag && (val / total > 0.45) ? "#ffffff" : "var(--ink)";
+      return `<td class="cm-cell" style="background:${bg}; color:${textColor};">${val} <small>(${pct}%)</small></td>`;
+    }).join('');
+    return `<tr><th>${rowEmojis[rIdx]} ${rowLabels[rIdx]}</th>${cells}</tr>`;
+  }).join('');
+  $('cmBody').innerHTML = cmHtml;
+  $('cmNote').innerHTML = m.cmNote;
+
+  // Class metrics progress bars
+  $('classMetricsContainer').innerHTML = m.classes.map(c => `
+    <div style="margin-bottom: 16px;">
+      <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-weight:600; font-size:13.5px;">
+        <span>${c.emoji} ${c.name} (${c.count.toLocaleString()} utterances)</span>
+        <span style="color:${c.color}">${c.rec}% Recall · ${c.f1}% F1</span>
+      </div>
+      <div class="p-track"><div class="p-fill" style="width: ${c.rec}%; background: ${c.color};"></div></div>
+    </div>
+  `).join('');
+  $('cliSnippet').textContent = m.cli;
+
+  // 5-Fold LOSO Cards
+  $('foldCardsContainer').innerHTML = Object.entries(m.folds).map(([s, f]) => `
+    <div class="card">
+      <span style="font-size:12px; font-weight:700; color:var(--mut);">SESSION ${s}</span>
+      <b style="display:block; font-size:26px; font-weight:800; margin:6px 0;">${f.ua} UA</b>
+      <small style="color:var(--mut)">WA: ${f.wa} · F1: ${f.f1}<br>Peak Val UA: <b>${f.peak}</b></small>
+    </div>
+  `).join('');
+  $('foldMeanText').innerHTML = m.meanText;
+
+  // Audio Lab
+  $('labActiveBadge').textContent = m.labBadge;
+  $('labModelInfo').textContent = m.labInfo;
+  $('textInputContainer').style.display = m.isMultimodal ? 'block' : 'none';
+
+  // If audio is already loaded in the lab, re-predict with the new model!
+  if (activeAudioBuffer) {
+    repredictLoadedAudio();
+  }
+}
+
+function onTranscriptChanged() {
+  if (currentModel === 'multimodal' && activeAudioBuffer) {
+    repredictLoadedAudio();
+  }
+}
+
+async function repredictLoadedAudio() {
+  if (!activeAudioBuffer) return;
+  $('predBadge').innerHTML = `⚡ Running ${MODEL_REGISTRY[currentModel].title}...`;
+  $('probBars').innerHTML = `<p style="font-size:13px; color:var(--mut); margin:8px 0;">Inference running on Apple Silicon GPU...</p>`;
+
+  try {
+    const wavBlob = bufferToWaveBlob(activeAudioBuffer);
+    const textVal = $('spokenTextInput') ? $('spokenTextInput').value : '';
+    const resp = await fetch(`/api/predict?model=${encodeURIComponent(currentModel)}&text=${encodeURIComponent(textVal)}`, {
+      method: 'POST',
+      body: wavBlob
+    });
+    if (resp.ok) {
+      const res = await resp.json();
+      if (res.status === 'ok') {
+        updatePredictionUI(res);
+      }
+    }
+  } catch (err) {
+    $('predBadge').innerHTML = `🔍 Audio Analyzed`;
+    $('probBars').innerHTML = `<p style="font-size:13px; color:var(--mut); margin:8px 0;">Start server for live predictions: <code>python run.py dashboard</code></p>`;
+  }
+}
+
+// ────────────────────────────────────────── Audio DSP Lab
+const AC = window.AudioContext || window.webkitAudioContext;
+
+function cv(id, series, color) {
+  const c = $(id), d = devicePixelRatio || 1, w = c.clientWidth, h = c.clientHeight;
+  c.width = w * d; c.height = h * d;
+  const g = c.getContext('2d');
+  g.scale(d, d);
+  g.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--line').trim();
+  g.beginPath(); g.moveTo(0, h/2); g.lineTo(w, h/2); g.stroke();
+
+  const v = series.filter(x => x != null && isFinite(x));
+  if (!v.length) return;
+  let lo = Math.min(...v), hi = Math.max(...v);
+  if (hi - lo < 1e-6) hi = lo + 1;
+  g.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue(color).trim() || color;
+  g.lineWidth = 1.6;
+  g.beginPath();
+  let on = false;
+  series.forEach((x, i) => {
+    if (x == null || !isFinite(x)) { on = false; return; }
+    const px = i / (series.length - 1) * w, py = h - 6 - (x - lo) / (hi - lo) * (h - 12);
+    on ? g.lineTo(px, py) : g.moveTo(px, py);
+    on = true;
+  });
+  g.stroke();
+}
+
+function stat(a) {
+  const n = a.length || 1, m = a.reduce((x, y) => x + y, 0) / n;
+  return [m, Math.sqrt(a.reduce((x, y) => x + (y - m) ** 2, 0) / n)];
+}
+
+function fft(re, im) {
+  const n = re.length;
+  for (let i = 1, j = 0; i < n; i++) {
+    let b = n >> 1;
+    for (; j & b; b >>= 1) j ^= b;
+    j ^= b;
+    if (i < j) { [re[i], re[j]] = [re[j], re[i]]; [im[i], im[j]] = [im[j], im[i]]; }
+  }
+  for (let l = 2; l <= n; l <<= 1) {
+    const a = -2 * Math.PI / l, wr = Math.cos(a), wi = Math.sin(a);
+    for (let i = 0; i < n; i += l) {
+      let cr = 1, ci = 0;
+      for (let k = 0; k < l / 2; k++) {
+        const h = l / 2, ur = re[i+k], ui = im[i+k],
+              tr = re[i+k+h]*cr - im[i+k+h]*ci, ti = re[i+k+h]*ci + im[i+k+h]*cr;
+        re[i+k] = ur + tr; im[i+k] = ui + ti;
+        re[i+k+h] = ur - tr; im[i+k+h] = ui - ti;
+        const t = cr * wr - ci * wi; ci = cr * wi + ci * wr; cr = t;
+      }
+    }
+  }
+}
+
+function sg(id, r) {
+  const c = $(id), d = devicePixelRatio || 1, w = c.clientWidth, h = c.clientHeight;
+  c.width = w * d; c.height = h * d;
+  const g = c.getContext('2d');
+  g.scale(d, d);
+  const T = r.spec.length, B = 48;
+  let mx = 1e-9;
+  r.spec.forEach(s => s.forEach(v => { if (v > mx) mx = v; }));
+  const cw = w / T, ch = h / B;
+  r.spec.forEach((s, t) => {
+    for (let b = 0; b < B; b++) {
+      const v = s[b] / mx;
+      g.fillStyle = `hsl(${260 - v * 220}, 80%, ${8 + v * 52}%)`;
+      g.fillRect(t * cw, h - (b + 1) * ch, cw + 1, ch + 1);
+    }
+  });
+  g.strokeStyle = '#fff';
+  g.lineWidth = 1.4;
+  g.beginPath();
+  r.cen.forEach((v, i) => {
+    const px = i * cw, py = h - Math.min(1, v / r.fmax) * h;
+    i ? g.lineTo(px, py) : g.moveTo(px, py);
+  });
+  g.stroke();
+}
+
+function analyze(buf) {
+  const ch = buf.getChannelData(0);
+  const f = Math.max(1, Math.round(buf.sampleRate / 12000));
+  const sr = buf.sampleRate / f;
+  const n = Math.min(Math.floor(ch.length / f), Math.floor(sr * 20));
+  const x = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    let s = 0;
+    for (let j = 0; j < f; j++) s += ch[i * f + j];
+    x[i] = s / f;
+  }
+  
+  // Expanded pitch range: 60 Hz (deep male / low pitch) to 480 Hz (high pitch)
+  const N = 1024, H = 256;
+  const lo = Math.max(10, Math.floor(sr / 480));
+  const hi = Math.min(Math.floor(N / 2), Math.floor(sr / 60));
+  
+  const rms = [], f0 = [], zc = [];
+  for (let p = 0; p + N <= n; p += H) {
+    let e = 0, z = 0;
+    for (let i = 0; i < N; i++) {
+      e += x[p + i] * x[p + i];
+      if (i && (x[p + i] > 0) !== (x[p + i - 1] > 0)) z++;
+    }
+    const frameRms = Math.sqrt(e / N);
+    rms.push(frameRms);
+    zc.push(z / N);
+
+    // Normalized cross-correlation (YIN-style lag search: unbiased across all pitches)
+    let bestLag = null;
+    let bestR = 0;
+    const rVals = new Float32Array(hi + 2);
+
+    if (frameRms > 1e-4) {
+      for (let l = lo; l <= hi; l++) {
+        let c = 0, e1 = 0, e2 = 0;
+        for (let i = 0; i < N - l; i++) {
+          c += x[p + i] * x[p + i + l];
+          e1 += x[p + i] * x[p + i];
+          e2 += x[p + i + l] * x[p + i + l];
+        }
+        const denom = Math.sqrt(e1 * e2);
+        rVals[l] = denom > 1e-8 ? (c / denom) : 0;
+      }
+
+      // Pick first local maximum peak above periodicity threshold (prevents octave errors)
+      for (let l = lo + 1; l < hi; l++) {
+        if (rVals[l] > 0.42 && rVals[l] > rVals[l - 1] && rVals[l] >= rVals[l + 1]) {
+          bestLag = l;
+          bestR = rVals[l];
+          break;
+        }
+      }
+      // Fallback to highest correlation peak if above 0.38
+      if (!bestLag) {
+        let maxR = 0, maxL = 0;
+        for (let l = lo; l <= hi; l++) {
+          if (rVals[l] > maxR) { maxR = rVals[l]; maxL = l; }
+        }
+        if (maxR > 0.38) {
+          bestLag = maxL;
+          bestR = maxR;
+        }
+      }
+    }
+
+    f0.push(bestLag ? sr / bestLag : null);
+  }
+
+  const mx = Math.max(...rms, 1e-9);
+  const db = rms.map(r => 20 * Math.log10(r + 1e-6));
+
+  // Speech activity floor: 2% of peak or 0.005, preserving soft, normal, & quiet voice
+  const speechFloor = Math.max(0.005, 0.02 * mx);
+  const pitch = f0.map((v, i) => (rms[i] > speechFloor ? v : null));
+  const pv = pitch.filter(v => v);
+  const [pm, ps] = pv.length ? stat(pv) : [0, 0];
+  const [dm, ds] = stat(db.filter((_, i) => rms[i] > speechFloor));
+  const vr = pv.length / (pitch.length || 1), zm = stat(zc)[0];
+
+  const F = 512;
+  const hw = Float32Array.from({length: F}, (_, i) => 0.5 - 0.5 * Math.cos(2 * Math.PI * i / (F - 1)));
+  const cen = [], rol = [], bw = [], flux = [], spec = [];
+  let prev = null;
+  for (let p = 0; p + N <= n; p += H) {
+    const re = new Float32Array(F), im = new Float32Array(F), o = p + ((N - F) >> 1);
+    for (let i = 0; i < F; i++) re[i] = x[o + i] * hw[i];
+    fft(re, im);
+    const mag = new Float32Array(F / 2);
+    let sm = 0, sw = 0;
+    for (let k = 0; k < F / 2; k++) {
+      mag[k] = Math.hypot(re[k], im[k]);
+      sm += mag[k]; sw += mag[k] * k;
+    }
+    const cc = sm > 1e-9 ? sw / sm : 0;
+    let b2 = 0, acc = 0, ro = 0;
+    for (let k = 0; k < F / 2; k++) {
+      b2 += mag[k] * (k - cc) ** 2;
+      acc += mag[k];
+      if (!ro && acc >= 0.85 * sm) ro = k;
+    }
+    const bin = sr / F;
+    cen.push(cc * bin);
+    bw.push(Math.sqrt(sm > 1e-9 ? b2 / sm : 0) * bin);
+    rol.push(ro * bin);
+    let fl = 0;
+    if (prev) for (let k = 0; k < F / 2; k++) fl += (mag[k] - prev[k]) ** 2;
+    flux.push(Math.sqrt(fl));
+    prev = mag;
+    const col = new Float32Array(48);
+    for (let k = 0; k < 48; k++) {
+      let a = 0;
+      for (let j = 0; j < 5; j++) a += mag[k * 5 + j + 1];
+      col[k] = Math.log10(1 + a);
+    }
+    spec.push(col);
+  }
+  const act = rms.map(v => v > speechFloor);
+  const av = a => { const v = a.filter((_, i) => act[i]); return v.length ? stat(v) : [0, 0]; };
+  const [cm, cs] = av(cen), [rm] = av(rol), [bm] = av(bw), [fm] = av(flux);
+  const dd = n / sr, ft = H / sr;
+  const pr = 1 - act.filter(Boolean).length / act.length;
+  let seg = 0;
+  act.forEach((a, i) => { if (a && (i === 0 || !act[i - 1])) seg++; });
+
+  let sl = 0, jit = 0;
+  const pts = pitch.map((v, i) => v ? [i * ft, v] : null).filter(Boolean);
+  if (pts.length > 2) {
+    const mt = pts.reduce((a, q) => a + q[0], 0) / pts.length;
+    const mv = pts.reduce((a, q) => a + q[1], 0) / pts.length;
+    let nu = 0, de = 0;
+    pts.forEach(q => { nu += (q[0] - mt) * (q[1] - mv); de += (q[0] - mt) ** 2; });
+    sl = de ? nu / de : 0;
+  }
+  let dCount = 0, cCount = 0;
+  for (let i = 1; i < pitch.length; i++) {
+    if (pitch[i] && pitch[i - 1]) {
+      dCount += Math.abs(pitch[i] - pitch[i - 1]);
+      cCount++;
+    }
+  }
+  jit = cCount && pm ? dCount / cCount / pm : 0;
+
+  const cl = (v, a, b) => Math.max(0, Math.min(1, (v - a) / (b - a)));
+  const ar = Math.round(100 * (0.3 * cl(dm, -45, -12) + 0.25 * cl(pm, 90, 300) + 0.15 * cl(ps, 0, 60) + 0.2 * cl(cm, 300, 2000) + 0.1 * cl(seg / dd, 0.5, 4)));
+
+  return {
+    dur: buf.duration, cm, cs, rm, bm, fm, pr, rate: seg / dd, sl, jit,
+    cen, spec, fmax: 240 * sr / F, pm, ps,
+    rng: pv.length ? Math.max(...pv) - Math.min(...pv) : 0,
+    dm, ds, vr, zm, ar, pitch, db,
+    wave: Array.from({length: 600}, (_, i) => {
+      let m = 0;
+      const a = Math.floor(i / 600 * ch.length), b = Math.floor((i + 1) / 600 * ch.length);
+      for (let k = a; k < b; k += Math.max(1, (b - a) >> 5)) m = Math.max(m, Math.abs(ch[k]));
+      return m;
+    })
+  };
+}
+
+function show(r, predData, filePath) {
+  window._r = r;
+  $('out').style.display = 'block';
+
+  // Metrics
+  const mm = [
+    ['Mean Pitch', r.pm ? r.pm.toFixed(0) + ' Hz' : '—', 'hap'],
+    ['Pitch σ', r.ps.toFixed(1) + ' Hz', 'hap'],
+    ['Pitch Range', r.rng.toFixed(0) + ' Hz', 'hap'],
+    ['Intonation', r.sl.toFixed(1) + ' Hz/s', 'hap'],
+    ['Pitch Jitter', (r.jit * 100).toFixed(1) + '%', 'hap'],
+    ['Mean Energy', r.dm.toFixed(1) + ' dB', 'sad'],
+    ['Energy σ', r.ds.toFixed(1) + ' dB', 'sad'],
+    ['Pause Ratio', (r.pr * 100).toFixed(0) + '%', 'ang'],
+    ['Speech Rate', r.rate.toFixed(1) + ' /s', 'ang'],
+    ['Voiced Ratio', (r.vr * 100).toFixed(0) + '%', 'ang'],
+    ['Duration', r.dur.toFixed(1) + ' s', 'ang'],
+    ['Centroid', r.cm.toFixed(0) + ' Hz', 'acc'],
+    ['Bandwidth', r.bm.toFixed(0) + ' Hz', 'acc'],
+    ['Rolloff 85%', r.rm.toFixed(0) + ' Hz', 'acc'],
+    ['Spectral Flux', r.fm.toFixed(1), 'acc'],
+    ['ZCR', r.zm.toFixed(3), 'acc']
+  ];
+  $('mets').innerHTML = mm.map(([a, b, g]) => `<div><b>${b}</b><span>${a}</span></div>`).join('');
+
+  // Canvases
+  requestAnimationFrame(() => {
+    cv('c1', r.wave.flatMap(v => [v, -v]), '--acc');
+    cv('c2', r.pitch, '--hap');
+    cv('c3', r.db, '--sad');
+    sg('c4', r);
+  });
+
+  // Arousal gauge
+  $('gp').style.left = r.ar + '%';
+  $('gl').textContent = r.ar + ' / 100 · ' + (r.ar < 35 ? 'calm' : r.ar < 65 ? 'medium' : 'excited / tense');
+
+  // Prediction rendering
+  if (predData) {
+    updatePredictionUI(predData);
+  } else {
+    $('predBadge').innerHTML = `⚡ Predicting with ${MODEL_REGISTRY[currentModel].title}...`;
+    $('probBars').innerHTML = `<p style="font-size:13px; color:var(--mut); margin:8px 0;">Running inference on Apple Silicon GPU...</p>`;
+  }
+
+  // Update CLI text
+  const fileTarget = filePath || 'path/to/your_audio.wav';
+  $('cliText').textContent = `python infer.py "${fileTarget}" --runs runs_iemocap/${currentModel}`;
+}
+
+function updatePredictionUI(predData) {
+  if (!predData) return;
+  const pLabel = predData.pred;
+  const pConf = predData.conf;
+  $('predBadge').innerHTML = `${EMOJIS[pLabel]} ${pLabel.toUpperCase()} <span style="font-size:14px; font-weight:600; opacity:0.8;">(${pConf}% confidence)</span>`;
+
+  let barsHtml = LABELS.map(l => {
+    const p = predData.probs[l] || 0;
+    const isWinner = l === pLabel;
+    return `
+      <div class="p-row">
+        <span style="font-weight:${isWinner ? '700' : '500'}; color:${isWinner ? 'var(--ink)' : 'var(--mut)'};">
+          ${EMOJIS[l]} ${l}
+        </span>
+        <div class="p-track">
+          <div class="p-fill" style="width: ${p}%; background: ${COLORS[l]};"></div>
+        </div>
+        <span class="p-num" style="color:${isWinner ? COLORS[l] : 'var(--mut)'}; font-weight:${isWinner ? '700' : '500'};">
+          ${p.toFixed(1)}%
+        </span>
+      </div>
+    `;
+  }).join('');
+
+  // When multimodal fusion is active, show the dual stream inspection breakdown!
+  if (predData.audio_probs && predData.text_probs) {
+    barsHtml += `
+      <div style="margin-top:14px; padding:12px; background:var(--card); border-radius:10px; border:1px solid var(--line); font-size:12px;">
+        <b style="display:block; margin-bottom:8px; color:var(--mut); text-transform:uppercase; font-size:11px; letter-spacing:0.04em;">
+          ⚡ Modality Decomposition (Audio vs Text):
+        </b>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div style="background:var(--card-alt); padding:8px 10px; border-radius:8px; border:1px solid var(--line);">
+            <div style="color:var(--acc); font-weight:700; margin-bottom:4px; font-size:11.5px;">🎙️ Audio Tone (WavLM • 45%)</div>
+            ${LABELS.map(l => `<div style="display:flex; justify-content:space-between; padding:2px 0; color:var(--mut);"><span>${EMOJIS[l]} ${l}</span><b style="color:var(--ink);">${predData.audio_probs[l]}%</b></div>`).join('')}
+          </div>
+          <div style="background:var(--card-alt); padding:8px 10px; border-radius:8px; border:1px solid var(--line);">
+            <div style="color:var(--hap); font-weight:700; margin-bottom:4px; font-size:11.5px;">📝 Spoken Words (RoBERTa • 55%)</div>
+            ${LABELS.map(l => `<div style="display:flex; justify-content:space-between; padding:2px 0; color:var(--mut);"><span>${EMOJIS[l]} ${l}</span><b style="color:var(--ink);">${predData.text_probs[l]}%</b></div>`).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  $('probBars').innerHTML = barsHtml;
+}
+
+function copyCli() {
+  const text = $('cliText').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    alert("Copied to clipboard!\n" + text);
+  });
+}
+
+function bufferToWaveBlob(abuf) {
+  const numOfChan = 1;
+  const length = abuf.length;
+  const sampleRate = abuf.sampleRate;
+  const buffer = new ArrayBuffer(44 + length * 2);
+  const view = new DataView(buffer);
+
+  function setUint16(pos, data) { view.setUint16(pos, data, true); }
+  function setUint32(pos, data) { view.setUint32(pos, data, true); }
+
+  setUint32(0, 0x46464952); // "RIFF"
+  setUint32(4, 36 + length * 2); // File length - 8
+  setUint32(8, 0x45564157); // "WAVE"
+
+  setUint32(12, 0x20746d66); // "fmt "
+  setUint32(16, 16); // Subchunk1Size
+  setUint16(20, 1); // PCM format
+  setUint16(22, numOfChan);
+  setUint32(24, sampleRate);
+  setUint32(28, sampleRate * 2 * numOfChan); // ByteRate
+  setUint16(32, numOfChan * 2); // BlockAlign
+  setUint16(34, 16); // 16 bits per sample
+
+  setUint32(36, 0x61746164); // "data"
+  setUint32(40, length * 2);
+
+  const channelData = abuf.getChannelData(0);
+  let pos = 44;
+  for (let i = 0; i < length; i++) {
+    const s = Math.max(-1, Math.min(1, channelData[i]));
+    view.setInt16(pos, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+    pos += 2;
+  }
+  return new Blob([buffer], {type: 'audio/wav'});
+}
+
+async function runAudioBuffer(ab, predData, filePath, audioSrc) {
+  try {
+    let buf;
+    if (ab instanceof AudioBuffer) {
+      buf = ab;
+    } else {
+      const ctx = new AC();
+      buf = await new Promise((resolve, reject) => {
+        const copy = ab.slice ? ab.slice(0) : ab;
+        ctx.decodeAudioData(copy, resolve, reject);
+      });
+      ctx.close();
+    }
+
+    activeAudioBuffer = buf;
+    activeFilePath = filePath;
+
+    if (audioSrc) {
+      $('audioPlayer').src = audioSrc;
+      $('audioPlayer').style.display = 'block';
+    } else {
+      $('audioPlayer').style.display = 'none';
+    }
+    show(analyze(buf), predData, filePath);
+
+    // If prediction data wasn't already hardcoded for this demo, query backend API!
+    if (!predData || currentModel !== 'wavlm_impro') {
+      repredictLoadedAudio();
+    }
+  } catch (e) {
+    $('msg').textContent = 'Could not process audio: ' + (e.message || e);
+  }
+}
+
+// Load Preloaded IEMOCAP Demo Sample
+function loadSample(key) {
+  if (typeof DEMO_SAMPLES !== 'undefined' && DEMO_SAMPLES[key]) {
+    const sample = DEMO_SAMPLES[key];
+    const byteCharacters = atob(sample.b64);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], {type: 'audio/wav'});
+    const url = URL.createObjectURL(blob);
+    
+    // Auto-fill transcript for demo sample if multimodal
+    if ($('spokenTextInput')) {
+      const demoTexts = {
+        angry: "I am really furious and upset right now!",
+        sad: "I don't know what to do anymore, it hurts.",
+        happy: "That is wonderful, thank you so much!",
+        neutral: "Yeah, I think that should be fine."
+      };
+      $('spokenTextInput').value = demoTexts[key] || "";
+    }
+
+    runAudioBuffer(byteArray.buffer.slice(0), sample.prediction, sample.path, url);
+  } else {
+    fetch(`samples/${key}.wav`)
+      .then(res => res.arrayBuffer())
+      .then(ab => runAudioBuffer(ab, null, `dashboard/samples/${key}.wav`, `samples/${key}.wav`))
+      .catch(e => {
+        alert("Please run dashboard via: python run.py dashboard");
+      });
+  }
+}
+
+// File drop & input handlers
+$('file').onchange = e => {
+  const f = e.target.files[0];
+  if (f) {
+    f.arrayBuffer().then(ab => {
+      const url = URL.createObjectURL(f);
+      runAudioBuffer(ab, null, f.name, url);
+    });
+  }
+};
+
+const dr = $('drop');
+['dragover', 'dragenter'].forEach(t => dr.addEventListener(t, e => { e.preventDefault(); dr.classList.add('on'); }));
+['dragleave', 'drop'].forEach(t => dr.addEventListener(t, e => { e.preventDefault(); dr.classList.remove('on'); }));
+dr.addEventListener('drop', e => {
+  const f = e.dataTransfer.files[0];
+  if (f) {
+    f.arrayBuffer().then(ab => {
+      const url = URL.createObjectURL(f);
+      runAudioBuffer(ab, null, f.name, url);
+    });
+  }
+});
+
+// Robust Microphone Recorder (Direct PCM capture via Web Audio API + Real-time Level Meter)
+let isRecording = false;
+let micStream = null;
+let micAudioCtx = null;
+let micProcessor = null;
+let micSource = null;
+let pcmBuffers = [];
+let recTimerInterval = null;
+let recStartTime = null;
+let speechRec = null;
+
+async function startMicRecording() {
+  const b = $('rec');
+  try {
+    // Request raw microphone access without browser noise gating or auto-attenuation
+    const audioConstraints = {
+      echoCancellation: false,
+      noiseSuppression: false,
+      autoGainControl: false,
+      channelCount: 1
+    };
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraints })
+      .catch(() => navigator.mediaDevices.getUserMedia({ audio: true }));
+
+    const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+    micAudioCtx = new AudioCtxClass();
+    if (micAudioCtx.state === 'suspended') {
+      await micAudioCtx.resume();
+    }
+
+    pcmBuffers = [];
+    isRecording = true;
+    recStartTime = Date.now();
+
+    // Optional real-time speech transcription for Multimodal text stream
+    const SpeechAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechAPI) {
+      try {
+        speechRec = new SpeechAPI();
+        speechRec.continuous = true;
+        speechRec.interimResults = true;
+        speechRec.lang = 'en-US';
+        speechRec.onresult = (ev) => {
+          let str = '';
+          for (let i = 0; i < ev.results.length; ++i) {
+            str += ev.results[i][0].transcript + ' ';
+          }
+          if ($('spokenTextInput') && str.trim()) {
+            $('spokenTextInput').value = str.trim();
+          }
+        };
+        speechRec.start();
+      } catch (e) {}
+    }
+
+    // Connect audio pipeline
+    micSource = micAudioCtx.createMediaStreamSource(micStream);
+    micProcessor = micAudioCtx.createScriptProcessor(4096, 1, 1);
+
+    micProcessor.onaudioprocess = (e) => {
+      if (!isRecording) return;
+      const inputData = e.inputBuffer.getChannelData(0);
+      pcmBuffers.push(new Float32Array(inputData));
+
+      // Calculate RMS using perceptual dB scale for natural volume feedback
+      let sum = 0;
+      for (let i = 0; i < inputData.length; i++) {
+        sum += inputData[i] * inputData[i];
+      }
+      const rms = Math.sqrt(sum / inputData.length);
+      const db = 20 * Math.log10(Math.max(rms, 1e-4)); // -80 dB to 0 dB
+      // Map -50 dB (quiet room) to -6 dB (full speech) smoothly into 0% - 100%
+      const volPct = Math.max(0, Math.min(100, Math.round((db + 50) * (100 / 44))));
+      if ($('recVolBar')) $('recVolBar').style.width = volPct + '%';
+    };
+
+    micSource.connect(micProcessor);
+    micProcessor.connect(micAudioCtx.destination);
+
+    // Update UI
+    b.classList.remove('g');
+    b.style.background = '#ef4444';
+    b.style.borderColor = '#ef4444';
+    b.style.color = '#fff';
+    $('recText').textContent = '■ Stop Recording';
+    if ($('recDot')) $('recDot').style.background = '#fff';
+    $('recStatus').style.display = 'flex';
+    $('msg').textContent = 'Recording active. Speak normally into your microphone.';
+
+    // Timer loop & auto-stop at 10 seconds
+    recTimerInterval = setInterval(() => {
+      if (!isRecording) return;
+      const elapsedSec = Math.floor((Date.now() - recStartTime) / 1000);
+      const mins = String(Math.floor(elapsedSec / 60)).padStart(2, '0');
+      const secs = String(elapsedSec % 60).padStart(2, '0');
+      $('recTimer').textContent = `${mins}:${secs}`;
+      if (elapsedSec >= 10) {
+        stopMicRecording();
+      }
+    }, 100);
+
+  } catch (err) {
+    console.error("Microphone access error:", err);
+    $('msg').textContent = '⚠️ Microphone error: ' + (err.message || 'Permission denied or no microphone found');
+    alert("Microphone Error: " + (err.message || "Could not access microphone. Please check browser permissions."));
+  }
+}
+
+async function stopMicRecording() {
+  if (!isRecording) return;
+  isRecording = false;
+  clearInterval(recTimerInterval);
+
+  const b = $('rec');
+  b.classList.add('g');
+  b.style.background = '';
+  b.style.borderColor = '';
+  b.style.color = '';
+  $('recText').textContent = '● Record Mic';
+  if ($('recDot')) $('recDot').style.background = '#22c55e';
+  $('recStatus').style.display = 'none';
+
+  // Safely stop stream and disconnect audio graph
+  if (speechRec) {
+    try { speechRec.stop(); } catch (e) {}
+    speechRec = null;
+  }
+  if (micProcessor) {
+    micProcessor.disconnect();
+    micProcessor.onaudioprocess = null;
+  }
+  if (micSource) micSource.disconnect();
+  if (micStream) {
+    micStream.getTracks().forEach(t => t.stop());
+  }
+
+  const sampleRate = micAudioCtx ? micAudioCtx.sampleRate : 44100;
+  const totalSamples = pcmBuffers.reduce((acc, b) => acc + b.length, 0);
+
+  if (totalSamples < sampleRate * 0.3) {
+    $('msg').textContent = 'Audio clip was too short (under 0.3s). Please hold or speak for at least 1-2 seconds.';
+    if (micAudioCtx) micAudioCtx.close();
+    return;
+  }
+
+  // Merge Float32 PCM chunks
+  const merged = new Float32Array(totalSamples);
+  let offset = 0;
+  for (const chunk of pcmBuffers) {
+    merged.set(chunk, offset);
+    offset += chunk.length;
+  }
+
+  // Remove DC bias / offset from hardware mic
+  let dcSum = 0;
+  for (let i = 0; i < totalSamples; i++) dcSum += merged[i];
+  const dcMean = dcSum / totalSamples;
+  for (let i = 0; i < totalSamples; i++) merged[i] -= dcMean;
+
+  // Check peak amplitude
+  let maxAmp = 0;
+  for (let i = 0; i < totalSamples; i++) {
+    const a = Math.abs(merged[i]);
+    if (a > maxAmp) maxAmp = a;
+  }
+
+  // Smart Speech Normalization: boost low/conversational voice to optimal level (-1.5 dBFS)
+  if (maxAmp > 1e-4) {
+    const targetPeak = 0.85;
+    const gain = Math.min(25.0, targetPeak / maxAmp);
+    for (let i = 0; i < totalSamples; i++) {
+      merged[i] = Math.max(-1.0, Math.min(1.0, merged[i] * gain));
+    }
+  }
+
+  // Create native AudioBuffer
+  const recordedBuf = micAudioCtx.createBuffer(1, totalSamples, sampleRate);
+  recordedBuf.getChannelData(0).set(merged);
+  micAudioCtx.close();
+
+  if (maxAmp < 0.001) {
+    $('msg').textContent = '⚠️ Very low input level detected. Please check microphone settings.';
+  } else {
+    $('msg').textContent = `Microphone audio captured & normalized (${(totalSamples / sampleRate).toFixed(1)}s, raw peak: ${(maxAmp * 100).toFixed(1)}%).`;
+  }
+
+  // Convert to standard WAV blob
+  const wavBlob = bufferToWaveBlob(recordedBuf);
+  const wavUrl = URL.createObjectURL(wavBlob);
+
+  runAudioBuffer(recordedBuf, null, 'microphone_recording.wav', wavUrl);
+}
+
+$('rec').onclick = () => {
+  if (isRecording) {
+    stopMicRecording();
+  } else {
+    startMicRecording();
+  }
+};
+if ($('stopRecBtn')) {
+  $('stopRecBtn').onclick = () => stopMicRecording();
+}
+
+// Initialize dashboard with default champion model
+switchModel('wavlm_impro');
+</script>
+</body>
+</html>

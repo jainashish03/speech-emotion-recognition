@@ -1,0 +1,89 @@
+{
+ "model": "bilstm",
+ "args": {
+  "model": "bilstm",
+  "data": "data_iemocap_smoke",
+  "out": "/Users/ashish/Downloads/ser_project/runs_iemocap",
+  "name": "bilstm",
+  "epochs": 2,
+  "bs": 32,
+  "accum": 1,
+  "lr": 0.001,
+  "lr_backbone": 3e-05,
+  "patience": 5,
+  "lite": true,
+  "pool": 4,
+  "max_frames": 800,
+  "wavlm_name": "microsoft/wavlm-base-plus",
+  "folds": [
+   1
+  ],
+  "limit": 0,
+  "workers": 2,
+  "seed": 42,
+  "device": "auto"
+ },
+ "overall": {
+  "ua": 0.25,
+  "wa": 0.11904761904761904,
+  "f1": 0.05319148936170213
+ },
+ "per_fold": {
+  "1": {
+   "ua": 0.25,
+   "wa": 0.11904761904761904,
+   "f1": 0.05319148936170213,
+   "best_val_ua": 0.3333333333333333
+  }
+ },
+ "ua_mean": 0.25,
+ "ua_std": 0.0,
+ "confusion": [
+  [
+   0,
+   0,
+   13,
+   0
+  ],
+  [
+   0,
+   0,
+   15,
+   0
+  ],
+  [
+   0,
+   0,
+   5,
+   0
+  ],
+  [
+   0,
+   0,
+   9,
+   0
+  ]
+ ],
+ "labels": [
+  "neutral",
+  "happy",
+  "sad",
+  "angry"
+ ],
+ "history": {
+  "1": [
+   {
+    "epoch": 1,
+    "loss": 1.398058533668518,
+    "val_ua": 0.3333333333333333,
+    "val_wa": 0.25
+   },
+   {
+    "epoch": 2,
+    "loss": 1.3881745040416718,
+    "val_ua": 0.3333333333333333,
+    "val_wa": 0.25
+   }
+  ]
+ }
+}

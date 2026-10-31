@@ -1,0 +1,28 @@
+# Virtual environment
+.venv/
+venv/
+ENV/
+
+# Python cache & bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Large binary model checkpoints & feature arrays (> 100MB exceeds GitHub limit)
+*.pt
+*.pth
+*.npy
+*.npz
+*.bin
+*.tar.gz
+
+# Temporary audio test outputs
+*.wav
+!dashboard/samples/*.wav
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Model checkpoints smoke test
+*_smoke/
